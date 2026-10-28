@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ms" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waktu Solat Malaysia</title>
+    
+    <!-- PWA / Web App Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-title" content="Waktu Solat">
+    
+    <!-- Favicon (Transparent Sun & Clock) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 5 L55 22 L45 22 Z M50 95 L55 78 L45 78 Z M5 50 L22 45 L22 55 Z M95 50 L78 45 L78 55 Z M18 18 L32 28 L28 32 Z M82 82 L68 72 L72 68 Z M82 18 L72 32 L68 28 Z M18 82 L28 68 L32 72 Z' fill='%23F59E0B'/%3E%3Ccircle cx='50' cy='50' r='26' fill='%23FEF3C7' stroke='%23D97706' stroke-width='3'/%3E%3Cline x1='50' y1='50' x2='50' y2='32' stroke='%2392400E' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='64' y2='50' stroke='%2392400E' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%2392400E'/%3E%3C/svg%3E">
+    
+    <!-- Apple Touch Icon (With white background and rounded corners for iOS Home Screen) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffffff' rx='20'/%3E%3Cpath d='M50 10 L55 25 L45 25 Z M50 90 L55 75 L45 75 Z M10 50 L25 45 L25 55 Z M90 50 L75 45 L75 55 Z M22 22 L35 30 L30 35 Z M78 78 L65 70 L70 65 Z M78 22 L70 35 L65 30 Z M22 78 L30 65 L35 70 Z' fill='%23F59E0B'/%3E%3Ccircle cx='50' cy='50' r='24' fill='%23FEF3C7' stroke='%23D97706' stroke-width='3'/%3E%3Cline x1='50' y1='50' x2='50' y2='34' stroke='%2392400E' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='62' y2='50' stroke='%2392400E' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%2392400E'/%3E%3C/svg%3E">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bs-tertiary-bg);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .number-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-feature-settings: "tnum";
+            font-variant-numeric: tabular-nums;
+        }
+        .app-card {
+            max-width: 450px;
+            width: 100%;
+            border: none;
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .prayer-item {
+            transition: all 0.25s ease;
+            border-radius: 0.75rem !important;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--bs-border-color);
+            background-color: var(--bs-body-bg);
+        }
+        .prayer-item.active-prayer {
+            background-color: var(--bs-primary);
+            color: #fff !important;
+            border-color: var(--bs-primary);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+        }
+        .prayer-item.active-prayer .text-secondary {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .prayer-item.active-prayer .prayer-time {
+            color: #fff !important;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bs-secondary-bg); 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bs-secondary); 
+        }
+    </style>
+</head>
+<body class="min-vh-100 d-flex align-items-center justify-content-center p-3">
+
+    <div class="card app-card shadow-lg position-relative">
+        
+        <!-- Theme Toggle -->
+        <button id="theme-toggle" class="btn btn-outline-secondary theme-toggle-btn rounded-circle position-absolute top-0 end-0 m-3 z-3" aria-label="Toggle theme">
+            <i class="bi bi-moon-fill" id="theme-icon"></i>
+        </button>
+
+        <div class="card-body p-4 p-sm-5">
+            <!-- Header -->
+            <div class="text-center mb-4 mt-2">
+                <h1 class="h3 fw-bold text-primary mb-1">Waktu Solat</h1>
+                <span class="badge text-bg-secondary text-uppercase tracking-wider">Malaysia</span>
+            </div>
+
+            <!-- Clock & Date -->
+            <div class="text-center mb-4 pb-2">
+                <h2 id="current-time" class="display-4 fw-bold number-font mb-2">--:--:--</h2>
+                <p id="current-date" class="mb-0 text-secondary fw-medium small">Memuatkan tarikh...</p>
+                <p id="hijri-date" class="mt-1 text-primary fw-medium small mb-0"></p>
+            </div>
+
+            <!-- Selection Controls -->
+            <div class="mb-4">
+                <div class="mb-3">
+                    <label for="state-select" class="form-label text-secondary small fw-semibold text-uppercase mb-1">Negeri</label>
+                    <select id="state-select" class="form-select border-primary-subtle shadow-sm">
+                        <option value="" disabled selected>Pilih Negeri...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="zone-select" class="form-label text-secondary small fw-semibold text-uppercase mb-1">Kawasan</label>
+                    <select id="zone-select" class="form-select border-primary-subtle shadow-sm" disabled>
+                        <option value="" disabled selected>Pilih Kawasan...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="d-none flex-column items-center justify-content-center py-4 text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-secondary small fw-medium">Mengambil data waktu solat...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-message" class="alert alert-danger d-none d-flex align-items-center shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <h6 class="alert-heading fw-bold mb-1">Gagal mengambil data</h6>
+                    <div class="small">Sila cuba sebentar lagi atau pilih kawasan lain.</div>
+                </div>
+            </div>
+
+            <!-- Prayer Times Display -->
+            <div id="prayer-times-container" class="d-none">
+                <ul id="prayer-list" class="list-unstyled mb-0">
+                    <!-- Dynamic Prayer Items -->
+                </ul>
+                
+                <hr class="mt-4 mb-2 text-secondary opacity-25">
+                <div class="text-center">
+                    <small class="text-secondary opacity-75" style="font-size: 0.65rem; letter-spacing: 1px;">DATA: JAKIM / WAKTUSOLAT.APP</small>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Data Kawasan JAKIM Malaysia
+        const jakimZones = {
+            "Johor": [
+                { code: "JHR01", name: "Pulau Aur dan Pulau Pemanggil" },
+                { code: "JHR02", name: "Johor Bahru, Kota Tinggi, Mersing" },
+                { code: "JHR03", name: "Kluang, Pontian" },
+                { code: "JHR04", name: "Batu Pahat, Muar, Segamat, Gemas Johor" }
+            ],
+            "Kedah": [
+                { code: "KDH01", name: "Kota Setar, Kubang Pasu, Pokok Sena (Daerah Kecil)" },
+                { code: "KDH02", name: "Kuala Muda, Yan, Pendang" },
+                { code: "KDH03", name: "Padang Terap, Sik" },
+                { code: "KDH04", name: "Baling" },
+                { code: "KDH05", name: "Bandar Baharu, Kulim" },
+                { code: "KDH06", name: "Langkawi" },
+                { code: "KDH07", name: "Gunung Jerai" }
+            ],
+            "Kelantan": [
+                { code: "KTN01", name: "Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai, Mukim Chiku" },
+                { code: "KTN03", name: "Gua Musang (Daerah Galas Dan Bertam), Jeli" }
+            ],
+            "Melaka": [
+                { code: "MLK01", name: "Seluruh Negeri Melaka" }
+            ],
+            "Negeri Sembilan": [
+                { code: "NGS01", name: "Tampin, Jempol" },
+                { code: "NGS02", name: "Jelebu, Kuala Pilah, Port Dickson, Rembau, Seremban" }
+            ],
+            "Pahang": [
+                { code: "PHG01", name: "Pulau Tioman" },
+                { code: "PHG02", name: "Kuantan, Pekan, Rompin, Muadzam Shah" },
+                { code: "PHG03", name: "Jerantut, Temerloh, Maran, Bera, Chenor, Jengka" },
+                { code: "PHG04", name: "Bentong, Lipis, Raub" },
+                { code: "PHG05", name: "Genting Sempah, Janda Baik, Bukit Tinggi" },
+                { code: "PHG06", name: "Cameron Highlands, Genting Higlands, Bukit Fraser" }
+            ],
+            "Perak": [
+                { code: "PRK01", name: "Tapah, Slim River, Tanjung Malim" },
+                { code: "PRK02", name: "Kuala Kangsar, Sg. Siput , Ipoh, Batu Gajah, Kampar" },
+                { code: "PRK03", name: "Lenggong, Pengkalan Hulu, Grik" },
+                { code: "PRK04", name: "Temengor, Belum" },
+                { code: "PRK05", name: "Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor" },
+                { code: "PRK06", name: "Selama, Taiping, Bagan Serai, Parit Buntar" },
+                { code: "PRK07", name: "Bukit Larut" }
+            ],
+            "Perlis": [
+                { code: "PLS01", name: "Seluruh Negeri Perlis" }
+            ],
+            "Pulau Pinang": [
+                { code: "PNG01", name: "Seluruh Negeri Pulau Pinang" }
+            ],
+            "Sabah": [
+                { code: "SBH01", name: "Bahagian Sandakan (Timur), Bukit Garam, Semawang, Temanggong, Tambisan, Bandar Sandakan, Sukau" },
+                { code: "SBH02", name: "Beluran, Telupid, Pinangah, Terusan, Kuamut, Bahagian Sandakan (Barat)" },
+                { code: "SBH03", name: "Lahad Datu, Silabukan, Tungku, Sahabat, Semporna, Tambisan" },
+                { code: "SBH04", name: "Bandar Tawau, Balong, Merotai, Kalabakan" },
+                { code: "SBH05", name: "Kudat, Kota Marudu, Pitas, Pulau Banggi" },
+                { code: "SBH06", name: "Gunung Kinabalu" },
+                { code: "SBH07", name: "Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan" },
+                { code: "SBH08", name: "Pensiangan, Keningau, Tambunan, Nabawan" },
+                { code: "SBH09", name: "Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia" }
+            ],
+            "Sarawak": [
+                { code: "SWK01", name: "Limbang, Lawas, Sundar, Trusan" },
+                { code: "SWK02", name: "Miri, Niah, Bekenu, Sibuti, Marudi" },
+                { code: "SWK03", name: "Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu" },
+                { code: "SWK04", name: "Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit" },
+                { code: "SWK05", name: "Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai" },
+                { code: "SWK06", name: "Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkilili, Betong, Spaoh, Pusa, Saratok" },
+                { code: "SWK07", name: "Serian, Simunjan, Samarahan, Sebuyau, Meludam" },
+                { code: "SWK08", name: "Kuching, Bau, Lundu, Sematan" },
+                { code: "SWK09", name: "Zon Khas (Kampung Pichin, Kampung Sarawak)" }
+            ],
+            "Selangor": [
+                { code: "SGR01", name: "Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, S.Alam" },
+                { code: "SGR02", name: "Kuala Selangor, Sabak Bernam" },
+                { code: "SGR03", name: "Klang, Kuala Langat" }
+            ],
+            "Terengganu": [
+                { code: "TRG01", name: "Kuala Terengganu, Marang, Kuala Nerus" },
+                { code: "TRG02", name: "Besut, Setiu" },
+                { code: "TRG03", name: "Hulu Terengganu" },
+                { code: "TRG04", name: "Dungun, Kemaman" }
+            ],
+            "Wilayah Persekutuan": [
+                { code: "WLY01", name: "Kuala Lumpur, Putrajaya" },
+                { code: "WLY02", name: "Labuan" }
+            ]
+        };
+
+        const prayerNames = [
+            { id: "imsak", name: "Imsak" },
+            { id: "fajr", name: "Subuh" },
+            { id: "syuruk", name: "Syuruk" },
+            { id: "dhuhr", name: "Zohor" },
+            { id: "asr", name: "Asar" },
+            { id: "maghrib", name: "Maghrib" },
+            { id: "isha", name: "Isyak" }
+        ];
+
+        let currentPrayerData = null;
+
+        // Elements
+        const stateSelect = document.getElementById('state-select');
+        const zoneSelect = document.getElementById('zone-select');
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error-message');
+        const prayerContainer = document.getElementById('prayer-times-container');
+        const prayerList = document.getElementById('prayer-list');
+        const clockEl = document.getElementById('current-time');
+        const dateEl = document.getElementById('current-date');
+        const hijriEl = document.getElementById('hijri-date');
+        
+        // Theme Toggle Elements
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        // Initialization
+        function init() {
+            // Initialize Theme
+            initTheme();
+
+            // Populate State Dropdown
+            for (const state in jakimZones) {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            }
+
+            // Load saved preference
+            const savedState = localStorage.getItem('waktuSolat_bs_state');
+            const savedZone = localStorage.getItem('waktuSolat_bs_zone');
+
+            if (savedState && jakimZones[savedState]) {
+                stateSelect.value = savedState;
+                populateZones(savedState);
+                if (savedZone) {
+                    zoneSelect.value = savedZone;
+                    fetchPrayerTimes(savedZone);
+                }
+            } else {
+                // Default to KL if nothing saved
+                stateSelect.value = "Wilayah Persekutuan";
+                populateZones("Wilayah Persekutuan");
+                zoneSelect.value = "WLY01";
+                fetchPrayerTimes("WLY01");
+            }
+
+            // Event Listeners
+            stateSelect.addEventListener('change', (e) => {
+                populateZones(e.target.value);
+                zoneSelect.disabled = false;
+                zoneSelect.value = "";
+                prayerContainer.classList.add('d-none');
+                localStorage.setItem('waktuSolat_bs_state', e.target.value);
+            });
+
+            zoneSelect.addEventListener('change', (e) => {
+                fetchPrayerTimes(e.target.value);
+                localStorage.setItem('waktuSolat_bs_zone', e.target.value);
+            });
+            
+            themeToggleBtn.addEventListener('click', toggleTheme);
+
+            // Start Clock
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+        
+        // Theme Logic
+        function initTheme() {
+            const savedTheme = localStorage.getItem('waktuSolat_bs_theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('waktuSolat_bs_theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+        
+        function updateThemeIcon(theme) {
+            if(theme === 'dark') {
+                themeIcon.className = 'bi bi-sun-fill';
+            } else {
+                themeIcon.className = 'bi bi-moon-fill';
+            }
+        }
+
+        function populateZones(state) {
+            zoneSelect.innerHTML = '<option value="" disabled selected>Pilih Kawasan...</option>';
+            if (jakimZones[state]) {
+                jakimZones[state].forEach(zone => {
+                    const option = document.createElement('option');
+                    option.value = zone.code;
+                    option.textContent = `${zone.code} - ${zone.name}`;
+                    zoneSelect.appendChild(option);
+                });
+                zoneSelect.disabled = false;
+            }
+        }
+
+        async function fetchPrayerTimes(zoneCode) {
+            // Hide UI & Show Loader
+            prayerContainer.classList.add('d-none');
+            errorEl.classList.add('d-none');
+            loadingEl.classList.remove('d-none');
+            loadingEl.classList.add('d-flex');
+
+            try {
+                const response = await fetch(`https://api.waktusolat.app/v2/solat/${zoneCode}`);
+                
+                if (!response.ok) throw new Error('API Error');
+
+                const result = await response.json();
+                
+                if (result && result.prayers && result.prayers.length > 0) {
+                    const today = new Date();
+                    const currentDay = today.getDate();
+                    
+                    let todayData = result.prayers.find(p => p.day === currentDay || p.date === currentDay) || result.prayers[0];
+                    currentPrayerData = todayData;
+                    
+                    renderPrayerTimes(todayData);
+                    
+                    if (todayData.hijri) {
+                        hijriEl.textContent = todayData.hijri;
+                    } else if (result.hijri) {
+                        hijriEl.textContent = result.hijri;
+                    }
+                    
+                } else {
+                    throw new Error('Data format unrecognised');
+                }
+
+            } catch (err) {
+                console.error(err);
+                errorEl.classList.remove('d-none');
+            } finally {
+                loadingEl.classList.add('d-none');
+                loadingEl.classList.remove('d-flex');
+            }
+        }
+
+        function renderPrayerTimes(data) {
+            prayerList.innerHTML = '';
+            
+            prayerNames.forEach(prayer => {
+                const time24 = data[prayer.id] || data[prayer.id.toLowerCase()] || data[prayer.name.toLowerCase()];
+                
+                if (time24) {
+                    let formattedTime = time24;
+                    let timestamp = null;
+                    
+                    if (typeof time24 === 'number') {
+                        const d = new Date(time24 * 1000);
+                        formattedTime = formatTime12(d);
+                        timestamp = d;
+                    } else if (typeof time24 === 'string') {
+                        const parts = time24.split(':');
+                        if(parts.length >= 2) {
+                            const d = new Date();
+                            d.setHours(parseInt(parts[0], 10));
+                            d.setMinutes(parseInt(parts[1], 10));
+                            d.setSeconds(0);
+                            formattedTime = formatTime12(d);
+                            timestamp = d;
+                        }
+                    }
+
+                    const li = document.createElement('li');
+                    li.className = 'prayer-item d-flex justify-content-between align-items-center px-4 py-3';
+                    if(timestamp) li.setAttribute('data-timestamp', timestamp.getTime());
+                    
+                    li.innerHTML = `
+                        <span class="prayer-name fw-medium text-secondary">${prayer.name}</span>
+                        <span class="prayer-time fw-bold number-font fs-5 text-body">${formattedTime}</span>
+                    `;
+                    prayerList.appendChild(li);
+                }
+            });
+
+            prayerContainer.classList.remove('d-none');
+            highlightNextPrayer();
+        }
+
+        function formatTime12(date) {
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return `${hours}:${minutes} ${ampm}`;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12; 
+            
+            m = m < 10 ? '0' + m : m;
+            s = s < 10 ? '0' + s : s;
+            
+            clockEl.textContent = `${h}:${m}:${s} ${ampm}`;
+            
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateEl.textContent = now.toLocaleDateString('ms-MY', options);
+
+            if (!prayerContainer.classList.contains('d-none')) {
+                highlightNextPrayer();
+            }
+        }
+
+        function highlightNextPrayer() {
+            const items = document.querySelectorAll('.prayer-item');
+            const now = new Date().getTime();
+            
+            let nextFound = false;
+            
+            // Reset all styles
+            items.forEach(item => {
+                item.classList.remove('active-prayer');
+                
+                const timeSpan = item.querySelector('.prayer-time');
+                if (timeSpan) {
+                     timeSpan.classList.add('text-body');
+                }
+            });
+
+            // Find and highlight next prayer
+            for (let i = 0; i < items.length; i++) {
+                const timeStr = items[i].getAttribute('data-timestamp');
+                if (timeStr) {
+                    const prayerTime = parseInt(timeStr, 10);
+                    if (prayerTime > now) {
+                        items[i].classList.add('active-prayer');
+                        
+                        const timeSpan = items[i].querySelector('.prayer-time');
+                        if (timeSpan) {
+                            timeSpan.classList.remove('text-body');
+                        }
+                        
+                        nextFound = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
